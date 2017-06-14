@@ -83,6 +83,9 @@ type TransformCode = (
   Callback<Data>,
 ) => void;
 
+const optimize = (filename, transformed, options) =>
+  constantFolding(filename, inline(filename, transformed, options));
+
 const transformCode: TransformCode = asyncify(
   (
     transformer: Transformer<*>,
@@ -123,10 +126,7 @@ const transformCode: TransformCode = asyncify(
 
     var code, map;
     if (options.minify) {
-      ({code, map} = constantFolding(
-        filename,
-        inline(filename, transformed, options),
-      ));
+      ({code, map} = optimize(filename, transformed, options));
       invariant(code != null, 'Missing code from constant-folding transform.');
     } else {
       ({code, map} = transformed);
@@ -199,3 +199,4 @@ exports.minify = (
 };
 
 exports.transformCode = transformCode; // for easier testing
+exports.optimize = optimize; // for easier testing
