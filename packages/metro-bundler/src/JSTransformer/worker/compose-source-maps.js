@@ -25,7 +25,7 @@ const composeSourceMaps = (
 
   const sourceContent = inputConsumer.sourceContentFor(inputFileName);
   if (sourceContent) {
-    resultMap.setSourceContent(inputFileName, inputMap);
+    resultMap.setSourceContent(inputFileName, sourceContent);
   }
 
   outputConsumer.eachMapping(

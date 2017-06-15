@@ -18,6 +18,18 @@ jest
 
 const {objectContaining} = jasmine;
 
+const {SourceMapGenerator} = require('source-map');
+const makeEmptySourceMap = (filename: string, src: string) => {
+  const gen = new SourceMapGenerator();
+  gen.setSourceContent(filename, src);
+  gen.addMapping({
+    generated: {line: 1, column: 0},
+    original: {line: 1, column: 0},
+    source: filename,
+  });
+  return gen.toJSON();
+};
+
 describe('code transformation worker:', () => {
   let transformCode;
 
@@ -31,7 +43,7 @@ describe('code transformation worker:', () => {
     transformer = {
       transform: jest.fn(({filename, options, src}) => ({
         code: src,
-        map: {},
+        map: makeEmptySourceMap(filename, src),
       })),
     };
   });
@@ -73,7 +85,7 @@ describe('code transformation worker:', () => {
   it('calls back with the result of the transform in the cache', done => {
     const result = {
       code: 'some.other(code)',
-      map: {},
+      map: makeEmptySourceMap('filename', 'some.other(code)'),
     };
 
     transformCode(
@@ -238,7 +250,7 @@ describe('code transformation worker:', () => {
     let transformResult, dependencyData;
     const filename = 'arbitrary/file.js';
     const foldedCode = 'arbitrary(folded(code));';
-    const foldedMap = {version: 3, sources: ['fold.js']};
+    const foldedMap = makeEmptySourceMap(filename, 'arbitrary(code)');
 
     beforeEach(() => {
       constantFolding = require('../constant-folding').mockReturnValue({
@@ -264,7 +276,10 @@ describe('code transformation worker:', () => {
     });
 
     it('passes the transform result to `inline` for constant inlining', done => {
-      transformResult = {map: {version: 3}, code: 'arbitrary(code)'};
+      transformResult = {
+        map: makeEmptySourceMap(filename, 'arbitrary(code)'),
+        code: 'arbitrary(code)',
+      };
       transformCode(transformer, filename, filename, 'code', options, () => {
         expect(inline).toBeCalledWith(filename, transformResult, options);
         done();
@@ -305,8 +320,8 @@ describe('code transformation worker:', () => {
     it('uses data produced by `constant-folding` for the result', done => {
       transformCode(
         transformer,
-        'filename',
-        'local/filename',
+        filename,
+        filename,
         'code',
         options,
         (_, data) => {
