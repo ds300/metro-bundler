@@ -18,6 +18,7 @@ const extractDependencies = require('./extract-dependencies');
 const inline = require('./inline');
 const invariant = require('fbjs/lib/invariant');
 const minify = require('./minify');
+const composeSourceMaps = require('./compose-source-maps');
 
 import type {LogEntry} from '../../Logger/Types';
 import type {MappingsMap} from '../../lib/SourceMap';
@@ -83,8 +84,21 @@ type TransformCode = (
   Callback<Data>,
 ) => void;
 
-const optimize = (filename, transformed, options) =>
-  constantFolding(filename, inline(filename, transformed, options));
+const optimize = (
+  filename: string,
+  transformed: {ast: ?Ast, code: string, map: ?MappingsMap},
+  options: Options,
+) => {
+  var code, map;
+  ({code, map} = constantFolding(
+    filename,
+    inline(filename, transformed, options),
+  ));
+  if (transformed.map && map) {
+    map = composeSourceMaps(transformed.map, map, filename);
+  }
+  return {code, map};
+};
 
 const transformCode: TransformCode = asyncify(
   (

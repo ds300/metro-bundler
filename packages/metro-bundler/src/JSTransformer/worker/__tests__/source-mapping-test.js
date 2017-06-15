@@ -45,9 +45,7 @@ const opts = {
 describe('the minification process', () =>
   it('should produce correct maps', () => {
     const js2tsMap = JSON.parse(javaScript2TypeScriptMap);
-    const js2tsMapConsumer = new SourceMapConsumer(
-      js2tsMap
-    );
+    const js2tsMapConsumer = new SourceMapConsumer(js2tsMap);
 
     expect(js2tsMapConsumer.originalPositionFor({line: 3, column: 21})).toEqual({
       line: 1,
