@@ -44,11 +44,12 @@ const opts = {
 
 describe('the minification process', () =>
   it('should produce correct maps', () => {
-    const js2tsMap = new SourceMapConsumer(
-      JSON.parse(javaScript2TypeScriptMap),
+    const js2tsMap = JSON.parse(javaScript2TypeScriptMap);
+    const js2tsMapConsumer = new SourceMapConsumer(
+      js2tsMap
     );
 
-    expect(js2tsMap.originalPositionFor({line: 3, column: 21})).toEqual({
+    expect(js2tsMapConsumer.originalPositionFor({line: 3, column: 21})).toEqual({
       line: 1,
       column: 25,
       name: null,
@@ -56,7 +57,7 @@ describe('the minification process', () =>
     });
 
     const result = optimize(
-      'test.js',
+      'test.ts',
       {
         map: js2tsMap,
         code: javaScriptFile,
